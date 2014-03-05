@@ -173,6 +173,10 @@ PRODUCT_PACKAGES += \
     libaudio-resampler \
     tinymix
 
+#wireless
+PRODUCT_PACKAGES += \
+    libnetcmdiface
+
 # BT
 PRODUCT_PACKAGES += \
     hci_qcomm_init
