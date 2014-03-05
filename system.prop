@@ -1,5 +1,18 @@
-# Make keys in CWM repeatable
-ro.cwm.enable_key_repeat=true
+#
+# Huashan
+#
+
+# Sony props
+ro.semc.version.cust=1272-3352
+ro.semc.version.cust_revision=R1B
+ro.somc.customerid=8242
+ro.semc.content.number=PA5
+ro.semc.version.fs_revision=12.1.A.0.266
+ro.semc.product.model=C5303
+ro.semc.ms_type_id=PM-0350-BV
+ro.semc.version.fs=GLOBAL-LTE
+ro.semc.product.name=Xperia SP
+ro.semc.product.device=C53
 
 # Graphics
 ro.sf.lcd_density=320

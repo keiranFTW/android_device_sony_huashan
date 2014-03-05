@@ -2891,6 +2891,24 @@ SectionVerb
 
 EndSection
 }
+SectionUseCase."UL REC" {
+Comment "Voice Uplink Recording use case"
+SectionVerb
+        Name "UL REC"
+
+        EnableSequence
+                'MultiMedia1 Mixer VOC_REC_UL':1:1
+        EndSequence
+
+        DisableSequence
+                'MultiMedia1 Mixer VOC_REC_UL':1:0
+        EndSequence
+
+        # ALSA PCMs
+        PlaybackPCM 0
+        CapturePCM 0
+EndSection
+}
 SectionUseCase."DL REC" {
 Comment "Voice Downlink Recording use case"
 SectionVerb
@@ -5267,7 +5285,7 @@ SectionDevice
 EndSection
 
 SectionDevice
-	Name "DMIC Stereo Tx"
+	Name "DMIC stereo Tx"
 	Comment "Dual MIC Endfire Tx real stereo device"
 
 	EnableSequence
@@ -5812,6 +5830,22 @@ SectionDevice
 	EndSequence
 
 	ACDBID	120:2
+
+EndSection
+
+
+SectionDevice
+	Name "BT WB Nrec Tx"
+	Comment "BT SCO WB Tx device if AT*NREC=false"
+
+	EnableSequence
+	EndSequence
+
+	DisableSequence
+	EndSequence
+
+	ACDBID	119:2
+	EffectsMixerCTL "SRS TruMedia"
 
 EndSection
 
@@ -7710,6 +7744,23 @@ SectionModifier
 	# ALSA PCMs
 	PlaybackPCM 3
 	CapturePCM 3
+
+EndSection
+
+SectionModifier
+        Name "Capture Voice Uplink"
+
+        EnableSequence
+                'MultiMedia1 Mixer VOC_REC_UL':1:1
+        EndSequence
+
+        DisableSequence
+                'MultiMedia1 Mixer VOC_REC_UL':1:0
+        EndSequence
+
+        # ALSA PCMs
+        PlaybackPCM 0
+        CapturePCM 0
 
 EndSection
 

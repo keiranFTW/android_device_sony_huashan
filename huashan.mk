@@ -145,10 +145,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/sbin/tad_static:root/sbin/tad_static
 
 # Display
-PRODUCT_PACKAGES += \
-    hwcomposer.msm8960 \
-    gralloc.msm8960 \
-    copybit.msm8960
+#PRODUCT_PACKAGES += \
+#    hwcomposer.msm8960 \
+#    gralloc.msm8960 \
+#    copybit.msm8960
 
 # NFC Support
 PRODUCT_PACKAGES += \
@@ -232,6 +232,13 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # lib ril
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     rild.libpath=/system/lib/libril-qc-qmi-1.so
+
+# semc
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    ro.semc.version.sw=1272-3352
+    ro.semc.version.sw_revision=12.1.A.0.266
+    ro.semc.version.sw_variant=GENERIC
+    ro.semc.version.sw_type=user
 
 # Do not power down SIM card when modem is sent to Low Power Mode.
 PRODUCT_PROPERTY_OVERRIDES += \
