@@ -18,8 +18,9 @@ import init.device.rc
 import init.sony.usb.rc
 
 on early-init
-    mount debugfs debugfs /sys/kernel/debug
+    mkdir /firmware 0771 system system
     symlink /data/tombstones /tombstones
+    mount debugfs debugfs /sys/kernel/debug
 
 on init
     mkdir /mnt/shell/emulated 0700 shell shell
@@ -60,6 +61,11 @@ on fs
     mount ext4 /dev/block/platform/msm_sdcc.1/by-name/LTALabel /lta-label nosuid nodev noatime noexec ro barrier=0
     chown system system /lta-label
     chmod 0555 /lta-label
+
+    chown idd idd /mnt/idd
+    chmod 0751 /mnt/idd
+    exec /system/bin/rm -r /mnt/idd/lost+found
+    mkdir /mnt/idd/lost+found 0770 root root
 
     chmod 0775 /data/etc
     start tad
@@ -222,16 +228,17 @@ on post-fs-data
     mkdir /data/misc/wifi/prima 0775 wifi wifi
     exec /system/bin/mac-update
 
-    write /sys/module/wcnss_ssr_8960/parameters/enable_riva_ssr 1
-    write /sys/devices/platform/wcnss_wlan.0/serial_number ${ro.serialno}
-    write /dev/wcnss_wlan 1
+    exec /system/bin/sh /system/etc/init.qcom.wifi.sh
 
-    mkdir /data/tombstones 0771 system system
+    mkdir /data/pc 700 radio radio
+    mkdir /data/tombstones 0755 system system
+    mkdir /data/tombstones/vendor 0755 system system
     mkdir /tombstones/modem 0771 system system
     mkdir /tombstones/lpass 0771 system system
     mkdir /tombstones/wcnss 0771 system system
     mkdir /tombstones/dsps 0771 system system
     mkdir /tombstones/mdm 0771 system system
+    mkdir /tombstones/mdm2 0771 system system
 
     # Create directory used by audio subsystem
     mkdir /data/misc/audio 0770 audio audio
