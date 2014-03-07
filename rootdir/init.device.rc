@@ -35,6 +35,7 @@ on boot
 
     # Vibrator
     chown system system /sys/class/timed_output/vibrator/level
+    chmod 0666 /sys/class/leds/lcd-backlight2/brightness
 
     # LM356x/cameralight
     chown system camera /sys/devices/i2c-10/10-0053/torch_enable
