@@ -18,8 +18,6 @@ import init.device.rc
 import init.sony.usb.rc
 
 on early-init
-    mkdir /firmware 0771 system system
-    symlink /data/tombstones /tombstones
     mount debugfs debugfs /sys/kernel/debug
 
 on init
@@ -45,6 +43,9 @@ on init
 
     symlink /dev/socket /tmp
 
+    chmod 0664 /proc/rdtag
+    chown root system /proc/rdtag
+
     mkdir /dev/bus 0755 root root
     mkdir /dev/bus/usb 0755 root root
 
@@ -53,7 +54,21 @@ on init
     write /sys/module/subsystem_restart/parameters/max_history_time 3600
 
 on fs
+
     mount_all ./fstab.qcom
+
+    mkdir /data/pc 700 radio radio
+    mkdir /data/tombstones 0755 system system
+    mkdir /data/tombstones/vendor 0755 system system
+    mkdir /tombstones/modem 0771 system system
+    mkdir /tombstones/lpass 0771 system system
+    mkdir /tombstones/wcnss 0771 system system
+    mkdir /tombstones/dsps 0771 system system
+    mkdir /tombstones/mdm 0771 system system
+    mkdir /tombstones/mdm2 0771 system system
+    mkdir /firmware 0771 system system
+    symlink /data/tombstones /tombstones
+
     setprop ro.crypto.fuse_sdcard true
 
     mkdir /lta-label 0555 system system
@@ -62,16 +77,17 @@ on fs
     chown system system /lta-label
     chmod 0555 /lta-label
 
-    chown idd idd /mnt/idd
-    chmod 0751 /mnt/idd
-    exec /system/bin/rm -r /mnt/idd/lost+found
-    mkdir /mnt/idd/lost+found 0770 root root
-
     chmod 0775 /data/etc
-    start tad
+
+    # SEMC: Start the TrimArea Daemon and early TA-users
+    class_start trimarea
     exec /sbin/wait4tad_static
     exec /system/bin/taimport
     start ta_qmi_service
+
+    # SEMC: Remote storage service should be started after master reset
+    # due to that the modem file system is formatted in the master reset
+    start rmt_storage
 
 on early-boot
     # set RLIMIT_MEMLOCK to 64MB
@@ -79,9 +95,6 @@ on early-boot
 
     # Permissions for AKM897x sensor
     chown system system /data/misc/akm_set.txt
-
-    # Run pre_hw_config.sh before entering charge only mode.
-    exec /system/bin/sh /system/etc/pre_hw_config.sh
 
     write /sys/devices/platform/msm_hsic_host/override_wakelock 0
     write /sys/module/pm8921_charger/parameters/eoc_bat_fet_close 1
@@ -92,6 +105,7 @@ on early-boot
     write /sys/module/pm8921_charger/parameters/enable_lowbatt_detect 1
 
 on boot
+
     exec /system/bin/btnvtool -O
     chown bluetooth bluetooth /sys/module/bluetooth_power/parameters/power
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
@@ -169,9 +183,6 @@ on boot
 
     chown root system /proc/net/ip_conntrack
 
-    # WTF
-    chmod 444 /proc/cmdline
-
     # Enable DEBUG_SUSPEND, DEBUG_EXIT_SUSPEND, and DEBUG_WAKEUP
     write /sys/module/wakelock/parameters/debug_mask 7
 
@@ -205,6 +216,10 @@ on boot
     # an ack packet comes out of order
     write /proc/sys/net/netfilter/nf_conntrack_tcp_be_liberal 1
 
+    # Set the console loglevel to < KERN_INFO
+    # Set the default message loglevel to KERN_INFO
+    write /proc/sys/kernel/printk "6 6 1 7"
+
     exec /system/bin/cal_data_manager init
 
 # Assign TCP buffer thresholds to be ceiling value of technology maximums
@@ -215,6 +230,10 @@ on boot
 # msm specific files that need to be created on /data
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
+
+    # NFC local data and nfcee xml storage
+    mkdir /data/nfc 0770 nfc nfc
+    mkdir /data/nfc/param 0770 nfc nfc
 
     # Create the directories used by the Wireless subsystem
     mkdir /data/misc/wifi 0770 wifi wifi
@@ -229,16 +248,6 @@ on post-fs-data
     exec /system/bin/mac-update
 
     exec /system/bin/sh /system/etc/init.qcom.wifi.sh
-
-    mkdir /data/pc 700 radio radio
-    mkdir /data/tombstones 0755 system system
-    mkdir /data/tombstones/vendor 0755 system system
-    mkdir /tombstones/modem 0771 system system
-    mkdir /tombstones/lpass 0771 system system
-    mkdir /tombstones/wcnss 0771 system system
-    mkdir /tombstones/dsps 0771 system system
-    mkdir /tombstones/mdm 0771 system system
-    mkdir /tombstones/mdm2 0771 system system
 
     # Create directory used by audio subsystem
     mkdir /data/misc/audio 0770 audio audio
@@ -262,16 +271,25 @@ on post-fs-data
     # Create directories for gpsone_daemon services
     mkdir /data/misc/gpsone_d 0770 system gps
 
+    #Create directories for Location services
+    mkdir /data/misc/location 0770 gps gps
+    mkdir /data/misc/location/mq 0770 gps gps
+
     # Provide the access to hostapd.conf only to root and group
     chmod 0660 /data/hostapd/hostapd.conf
 
     mkdir /data/audio 0770 media audio
+
+    # Create /data/time folder for time-services
+    mkdir /data/time 0700 system system
 
     # Camera
     mkdir /data/camera 0771 root camera
 
     # Enable Power save functionality for modem
     setprop persist.radio.add_power_save 1
+
+    chown system /dev/block/platform/msm_sdcc.1/by-name
 
     setprop vold.post_fs_data_done 1
 
@@ -367,8 +385,6 @@ on post-fs-data
 
     write /sys/devices/platform/msm_sdcc.3/idle_timeout 10
 
-    start mpdecision
-
 on charger
     # Enable Power modes and set the CPU Freq Sampling rates
     write /sys/module/rpm_resources/enable_low_power/L2_cache 1
@@ -429,14 +445,13 @@ service qmuxd /system/bin/qmuxd
     user radio
     group radio audio bluetooth gps qcom_diag net_bt_stack
 
-# SONY: TrimArea Daemon
-# Last 2 args: start block(blk size 128k), number of blocks(partitionsize(kb)/128(kb))
-service tad /sbin/tad_static /dev/block/mmcblk0 1,16
-    class core
+#Sony: TrimArea Daemon
+# last 2 args: start block(blk size 128k), number of blocks(partitionsize(kb) /128(kb))
+service tad_static /sbin/tad_static /dev/block/mmcblk0 1,16
     user root
     group root
     socket tad stream 0660 system system
-    disabled
+    class trimarea
 
 # Trim Area QMI service
 service ta_qmi_service /system/bin/ta_qmi_service
@@ -545,7 +560,8 @@ service dis_msm_therm /system/bin/sh /system/etc/disable_msm_thermal.sh
     oneshot
 
 service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
-    class main
+   user root
+   disabled
 
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B \
@@ -566,3 +582,9 @@ service illumination /system/bin/illumination_service
     socket illumination stream 0660 root system
     class main
     user root
+
+service time_daemon /system/bin/time_daemon
+    user system
+    group system qcom_oncrpc
+    oneshot
+    disabled

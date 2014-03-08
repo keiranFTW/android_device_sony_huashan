@@ -60,9 +60,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/com.android.nfc_extras.xml:system/etc/permissions/com.android.nfc_extras.xml
 
-PRODUCT_COPY_FILES += \
-    $(NFCEE_ACCESS_PATH):system/etc/nfcee_access.xml
-
 # Post recovery script
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/postrecoveryboot.sh:recovery/root/sbin/postrecoveryboot.sh
@@ -87,7 +84,7 @@ PRODUCT_COPY_FILES += \
 
 # System
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/rootdir/system,system)
+    $(call find-copy-subdir-files,*,$(LOCAL_PATH)/rootdir/system,system)
 
 # Display
 #PRODUCT_PACKAGES += \
@@ -171,7 +168,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp
+    persist.sys.usb.config=mtp,adb
 
 # Radio and Telephony
 PRODUCT_PROPERTY_OVERRIDES += \
