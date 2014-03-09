@@ -18,3 +18,17 @@ ro.semc.product.device=C53
 ro.sf.lcd_density=320
 
 ro.use_data_netmgrd=true
+
+# NFC
+ro.nfc.on.default=true
+ro.nfc.se.sim.enable=true
+ro.nfc.se.smx.enable=false
+ro.nfc.icon.enable=false
+ro.nfc.vendor.name=nxp
+ro.nfc.limitation.camera=false
+
+# System props for telephony
+# System prop to turn off CdmaLTEPhone always
+telephony.lteOnCdmaDevice=0
+# start in GSM/WCDMA (WCDMA preferred)
+ro.telephony.default_network=0

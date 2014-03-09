@@ -164,11 +164,13 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # GPS
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.gps.qmienabled=true
+    persist.gps.qmienabled=true \
+    persist.gps.qc_nlp_in_use=0 \
+    ro.gps.agps_provider=1 \
 
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp,adb
+    persist.sys.usb.config=mtp
 
 # Radio and Telephony
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -193,6 +195,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Ril sends only one RIL_UNSOL_CALL_RING, so set call_ring.multiple to false
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.telephony.call_ring.multiple=0
+
+# Extra debugging props
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.sys.strictmode.visual=0 \
+    persist.sys.strictmode.disable=1
 
 # call dalvik heap config
 $(call inherit-product-if-exists, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
